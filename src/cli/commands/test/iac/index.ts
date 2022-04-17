@@ -273,7 +273,7 @@ export default async function(...args: MethodArgs): Promise<TestCommandResult> {
   let response = '';
 
   if (isNewIacOutputSupported && !notSuccess) {
-    response += getIacDisplayedIssues(results, iacOutputMeta!);
+    response += EOL + getIacDisplayedIssues(results, iacOutputMeta!);
   } else {
     response += results
       .map((result, i) => {
@@ -303,7 +303,7 @@ export default async function(...args: MethodArgs): Promise<TestCommandResult> {
     errorResultsLength = iacScanFailures.length || errorResults.length;
 
     response += isNewIacOutputSupported
-      ? EOL + formatIacTestFailures(iacScanFailures)
+      ? EOL.repeat(2) + formatIacTestFailures(iacScanFailures)
       : iacScanFailures
           .map((reason) => chalk.bold.red(getIacDisplayErrorFileOutput(reason)))
           .join('');
