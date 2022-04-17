@@ -1,14 +1,17 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import { formatScanResultsNewOutput } from '../../../../../../../src/lib/formatters/iac-output/v2/formatters';
-import { FormattedResult } from '../../../../../../../src/cli/commands/test/iac/local-execution/types';
-import { IacOutputMeta } from '../../../../../../../src/lib/types';
-import { IacTestOutput } from '../../../../../../../src/lib/formatters/iac-output/v2/types';
+import { IacOutputMeta } from '../../../../../../../../src/lib/types';
+import { formatScanResultsNewOutput } from '../../../../../../../../src/lib/formatters/iac-output/v2/issues-list/formatters';
+import { TestData } from '../../../../../../../../src/lib/formatters/iac-output/v2/issues-list/types';
+import { IacTestResponse } from '../../../../../../../../src/lib/snyk-test/iac-test-result';
+
+// import x from '../../../../../iac/process-results/fixtures/formatted-results.json'
 
 describe('IaC Output Mapper', () => {
   const fixtureContent = fs.readFileSync(
     path.join(
       __dirname,
+      '..',
       '..',
       '..',
       '..',
@@ -20,11 +23,12 @@ describe('IaC Output Mapper', () => {
     ),
     'utf-8',
   );
-  const fixture: FormattedResult[] = JSON.parse(fixtureContent);
+  const fixture: IacTestResponse[] = JSON.parse(fixtureContent);
 
   const formattedFixtureContent = fs.readFileSync(
     path.join(
       __dirname,
+      '..',
       '..',
       '..',
       '..',
@@ -36,7 +40,7 @@ describe('IaC Output Mapper', () => {
     ),
     'utf-8',
   );
-  const formattedFixture: IacTestOutput = JSON.parse(formattedFixtureContent);
+  const formattedFixture: TestData = JSON.parse(formattedFixtureContent);
 
   const outputMeta: IacOutputMeta = {
     orgName: 'Shmulik.Kipod',
