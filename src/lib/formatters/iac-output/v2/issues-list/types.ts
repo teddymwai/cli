@@ -20,6 +20,7 @@ export const SeverityTitleBySeverity = severityValues.reduce(
 
 export interface AnnotatedIssue extends AnnotatedIacIssue {
   targetFile: string;
+  projectType: string;
 }
 
 type IssuesBySeverity = {

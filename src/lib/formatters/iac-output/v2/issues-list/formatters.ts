@@ -20,6 +20,7 @@ export function formatScanResultsNewOutput(
       newFormattedResults.results[issue.severity]!.push({
         ...issue,
         targetFile: oldFormattedResult.targetFile,
+        projectType: oldFormattedResult.result.projectType,
       });
     });
   });

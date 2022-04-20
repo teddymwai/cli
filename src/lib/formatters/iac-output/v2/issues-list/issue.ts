@@ -1,5 +1,6 @@
 import chalk from 'chalk';
 import { EOL } from 'os';
+import { iacRemediationTypes } from '../../../../iac/constants';
 
 import { printPath } from '../../../remediation-based-format-issues';
 import { colors } from '../color-utils';
@@ -23,6 +24,9 @@ function formatTitle(issue: AnnotatedIssue): string {
 }
 
 function formatProperties(issue: AnnotatedIssue): string {
+  const remediationKey: string | undefined =
+    iacRemediationTypes?.[issue.projectType];
+
   const properties = [
     [
       'Info',
@@ -33,7 +37,12 @@ function formatProperties(issue: AnnotatedIssue): string {
     ['Rule', issue.documentation],
     ['Path', printPath(issue.cloudConfigPath, 0)],
     ['File', issue.targetFile],
-    ['Resolve', issue.iacDescription.resolve],
+    [
+      'Resolve',
+      remediationKey && issue.remediation?.[remediationKey]
+        ? issue.remediation[remediationKey]
+        : issue.iacDescription.resolve,
+    ],
   ].filter(([, val]) => !!val) as [string, string][];
 
   const maxPropertyNameLength = Math.max(
