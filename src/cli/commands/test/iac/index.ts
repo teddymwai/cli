@@ -17,8 +17,11 @@ import config from '../../../../lib/config';
 import { UnsupportedEntitlementError } from '../../../../lib/errors/unsupported-entitlement-error';
 import { buildOutput } from './output';
 import { initRulesAndScanPaths } from './scan';
+import { assertIaCOptionsFlags } from './local-execution/assert-iac-options-flag';
 
 export default async function(...args: MethodArgs): Promise<TestCommandResult> {
+  assertIaCOptionsFlags(process.argv);
+
   const { options: originalOptions, paths } = processCommandArgs(...args);
 
   const options = setDefaultTestOptions(originalOptions);
