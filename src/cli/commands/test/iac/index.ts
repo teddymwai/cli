@@ -187,11 +187,31 @@ export default async function(...args: MethodArgs): Promise<TestCommandResult> {
     cleanLocalCache();
   }
 
+  return buildOutput(
+    options,
+    results,
+    isNewIacOutputSupported,
+    iacScanFailures,
+    iacIgnoredIssuesCount,
+    iacOutputMeta,
+    resultOptions,
+  );
+}
+
+function buildOutput(
+  options: any,
+  results: any[],
+  isNewIacOutputSupported: boolean | undefined,
+  iacScanFailures: IacFileInDirectory[] | undefined,
+  iacIgnoredIssuesCount: number,
+  iacOutputMeta: IacOutputMeta | undefined,
+  resultOptions: (Options & TestOptions)[],
+) {
   if (options.json || options.sarif) {
     return buildJsonOrSarifOutput(options, results);
   }
 
-  return buildConsoleOutput(
+  return buildTextOutput(
     options,
     results,
     isNewIacOutputSupported,
@@ -269,7 +289,7 @@ function buildJsonOrSarifOutput(options: any, results: any[]) {
   throw err;
 }
 
-function buildConsoleOutput(
+function buildTextOutput(
   options: any,
   results: any[],
   isNewIacOutputSupported: boolean | undefined,
@@ -279,7 +299,7 @@ function buildConsoleOutput(
   resultOptions: (Options & TestOptions)[],
 ) {
   if (isNewIacOutputSupported) {
-    return buildNewConsoleOutput(
+    return buildNewTextOutput(
       options,
       results,
       iacScanFailures,
@@ -288,7 +308,7 @@ function buildConsoleOutput(
       resultOptions,
     );
   }
-  return buildOldConsoleOutput(
+  return buildOldTextOutput(
     options,
     results,
     iacScanFailures,
@@ -297,7 +317,7 @@ function buildConsoleOutput(
   );
 }
 
-function buildOldConsoleOutput(
+function buildOldTextOutput(
   options: any,
   results: any[],
   iacScanFailures: IacFileInDirectory[] | undefined,
@@ -435,7 +455,7 @@ function buildOldConsoleOutput(
   );
 }
 
-function buildNewConsoleOutput(
+function buildNewTextOutput(
   options: any,
   results: any[],
   iacScanFailures: IacFileInDirectory[] | undefined,
@@ -447,14 +467,14 @@ function buildNewConsoleOutput(
   const notSuccess = errorResults.length > 0;
 
   if (notSuccess) {
-    buildNewConsoleOutputForFailureAndThrow(
+    buildNewTextOutputForFailureAndThrow(
       results,
       iacScanFailures,
       resultOptions,
     );
   }
 
-  return buildNewConsoleOutputForSuccess(
+  return buildNewTextOutputForSuccess(
     options,
     results,
     iacScanFailures,
@@ -463,7 +483,7 @@ function buildNewConsoleOutput(
   );
 }
 
-function buildNewConsoleOutputForSuccess(
+function buildNewTextOutputForSuccess(
   options: any,
   results: any[],
   iacScanFailures: IacFileInDirectory[] | undefined,
@@ -566,7 +586,7 @@ function buildNewConsoleOutputForSuccess(
   );
 }
 
-function buildNewConsoleOutputForFailureAndThrow(
+function buildNewTextOutputForFailureAndThrow(
   results: any[],
   iacScanFailures: IacFileInDirectory[] | undefined,
   resultOptions: (Options & TestOptions)[],
