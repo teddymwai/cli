@@ -24,6 +24,7 @@ interface Config {
   DRIFTCTL_PATH?: string;
   DRIFTCTL_URL?: string;
   USE_BASE64_ENCODING?: boolean;
+  IAC_BUNDLE_PATH?: string;
 }
 
 // TODO: fix the types!
