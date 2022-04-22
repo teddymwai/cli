@@ -56,7 +56,7 @@ async function getCodeAnalysis(
     ? sastSettings.localCodeEngine.url
     : config.CODE_CLIENT_PROXY_URL;
 
-const base64Encoding = config.USE_BASE64_ENCODING ?? false;
+  const base64Encoding = config.USE_BASE64_ENCODING ?? false;
 
   // TODO(james) This mirrors the implementation in request.ts and we need to use this for deeproxy calls
   // This ensures we support lowercase http(s)_proxy values as well
