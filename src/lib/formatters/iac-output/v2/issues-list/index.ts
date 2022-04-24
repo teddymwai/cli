@@ -35,7 +35,14 @@ export function getIacDisplayedIssues(
         `${SeverityTitleBySeverity[severity]} Severity Issues: ${issues.length}`,
       );
 
-      const issuesOutput = issues.map(formatIssue).join(EOL.repeat(2));
+      const issuesOutput = issues
+        .sort(
+          (issue1, issue2) =>
+            issue1.targetFile.localeCompare(issue2.targetFile) ||
+            issue1.id.localeCompare(issue2.id),
+        )
+        .map(formatIssue)
+        .join(EOL.repeat(2));
 
       debug(
         `iac display output - ${severity} severity ${issues!.length} issues`,
