@@ -87,6 +87,44 @@ You can also use these direct links to download the executables:
 
 Drawback of this method is, that you will have to manually keep the Snyk CLI up to date.
 
+#### Verifying standalone binaries
+
+You can verify both shasum of downloaded binaries and their GPG signatures.
+
+Download location on `static.snyk.io` contains a file called `shasums256.txt.asc`.
+You can download it directly `https://static.snyk.io/cli/latest/shasums256.txt.asc` or for a specific version like `https://static.snyk.io/cli/v1.666.0/shasums256.txt.asc`.
+
+To check that a downloaded file matches the checksum, use a `sha256sum` command like so:
+
+```bash
+grep snyk-macos shasums256.txt.asc | sha256sum -c -
+```
+
+If you want to use verify Snyk CLI standalone binaries against Snyk's GPG key, you will need to import it first:
+
+```bash
+# 68BFBCCEB7794E6FC06A2044A29C32E91F4B9569 is the key belonging to code-signing@snyk.io
+# Copy of this public key is also in this repository /release-scripts/snyk-code-signing-public.pgp
+gpg --keyserver hkps://keys.openpgp.org --recv-keys 68BFBCCEB7794E6FC06A2044A29C32E91F4B9569
+```
+
+Then verify the file is signed with:
+
+```bash
+gpg --verify shasums256.txt.asc
+```
+
+Command output should look like:
+
+```plain
+gpg: Signature made Mon Apr 25 16:55:01 2022 CEST
+gpg:                using RSA key 68BFBCCEB7794E6FC06A2044A29C32E91F4B9569
+gpg: Good signature from "Snyk Limited <code-signing@snyk.io>" [unknown]
+gpg: WARNING: This key is not certified with a trusted signature!
+gpg:          There is no indication that the signature belongs to the owner.
+Primary key fingerprint: 68BF BCCE B779 4E6F C06A  2044 A29C 32E9 1F4B 9569
+```
+
 </details>
 
 <details>
