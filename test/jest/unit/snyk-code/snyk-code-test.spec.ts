@@ -685,7 +685,7 @@ describe('Test snyk code', () => {
         sessionToken,
         source,
         requestId: 'test-id',
-        base64Encoding: false
+        base64Encoding: false,
       },
       analysisOptions: {
         severity,
@@ -696,9 +696,9 @@ describe('Test snyk code', () => {
         initiator: 'CLI',
         org: expect.anything(),
         orgDisplayName: undefined,
-        projectName: undefined
+        projectName: undefined,
       },
-      languages: undefined
+      languages: undefined,
     };
 
     const sastSettings = {
@@ -781,7 +781,7 @@ describe('Test snyk code', () => {
           sessionToken,
           source,
           requestId: 'test-id',
-          base64Encoding: false
+          base64Encoding: false,
         },
         analysisOptions: {
           severity,
@@ -792,9 +792,9 @@ describe('Test snyk code', () => {
           initiator: 'CLI',
           org: expect.anything(),
           orgDisplayName: undefined,
-          projectName: undefined
+          projectName: undefined,
         },
-        languages: undefined
+        languages: undefined,
       };
 
       const analyzeFoldersSpy = analyzeFoldersMock.mockResolvedValue(
