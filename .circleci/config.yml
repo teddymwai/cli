@@ -181,7 +181,7 @@ commands:
       - run:
           name: Installing ShellSpec
           command: |
-            curl -fsSL https://git.io/shellspec | sh -s -- -y
+            ./test/smoke/install-shellspec.sh --yes
             sudo ln -s ${HOME}/.local/lib/shellspec/shellspec /usr/local/bin/shellspec
   start_proxy_linux:
     steps:
@@ -278,6 +278,9 @@ jobs:
             - packages/*/dist
             - pysrc
   regression-test:
+    parameters:
+      test_snyk_command:
+        type: string
     executor: docker-node
     steps:
       - checkout
@@ -291,11 +294,10 @@ jobs:
           working_directory: ./test/fixtures/basic-npm
           command: npm install
       - run:
-          name: Pruning dependencies
-          command: npx ts-node ./release-scripts/prune-dependencies-in-packagejson.ts
-      - run:
-          name: Installing packed Snyk CLI
-          command: sudo npm install -g ./binary-releases/snyk.tgz
+          name: Installing Snyk CLI
+          command: |
+            sudo ln -s << parameters.test_snyk_command >> /usr/local/bin/snyk
+            snyk --version
       - run:
           name: Running ShellSpec tests
           working_directory: ./test/smoke
@@ -305,6 +307,9 @@ jobs:
             unset SNYK_API_KEY
             shellspec -f d -e REGRESSION_TEST=1
   test-windows:
+    parameters:
+      test_snyk_command:
+        type: string
     executor: win/default
     working_directory: C:\Users\circleci\snyk
     steps:
@@ -321,13 +326,16 @@ jobs:
           npm_cache_directory: ~\AppData\Local\npm-cache
       - run:
           name: Configuring artifact
-          command: C:\Users\circleci\snyk\binary-releases\snyk-win.exe config set "api=$env:SNYK_API_KEY"
+          command: << parameters.test_snyk_command >> config set "api=$env:SNYK_API_KEY"
       - run:
           name: Testing artifact
-          command: npm run test:acceptance
+          command: npm run test:acceptance -- --selectProjects snyk
           environment:
-            TEST_SNYK_COMMAND: C:\Users\circleci\snyk\binary-releases\snyk-win.exe
+            TEST_SNYK_COMMAND: << parameters.test_snyk_command >>
   test-macos:
+    parameters:
+      test_snyk_command:
+        type: string
     executor: macos
     working_directory: /Users/distiller/snyk
     steps:
@@ -341,13 +349,16 @@ jobs:
           npm_cache_directory: /Users/distiller/.npm
       - run:
           name: Configuring artifact
-          command: /Users/distiller/snyk/binary-releases/snyk-macos config set "api=${SNYK_API_KEY}"
+          command: << parameters.test_snyk_command >> config set "api=${SNYK_API_KEY}"
       - run:
           name: Testing artifact
-          command: npm run test:acceptance
+          command: npm run test:acceptance -- --selectProjects snyk
           environment:
-            TEST_SNYK_COMMAND: /Users/distiller/snyk/binary-releases/snyk-macos
+            TEST_SNYK_COMMAND: << parameters.test_snyk_command >>
   test-linux:
+    parameters:
+      test_snyk_command:
+        type: string
     executor: linux
     working_directory: /home/circleci/snyk
     steps:
@@ -364,12 +375,12 @@ jobs:
           npm_cache_directory: /home/circleci/.npm
       - run:
           name: Configuring artifact
-          command: /home/circleci/snyk/binary-releases/snyk-linux config set "api=${SNYK_API_KEY}"
+          command: << parameters.test_snyk_command >> config set "api=${SNYK_API_KEY}"
       - run:
           name: Testing artifact
-          command: npm run test:acceptance
+          command: npm run test:acceptance -- --selectProjects snyk
           environment:
-            TEST_SNYK_COMMAND: /home/circleci/snyk/binary-releases/snyk-linux
+            TEST_SNYK_COMMAND: << parameters.test_snyk_command >>
   test-linux-arm64:
     executor: linux-arm64
     working_directory: /home/circleci/snyk
@@ -679,24 +690,26 @@ workflows:
             branches:
               only:
                 - /^chore\/.+$/
-                - /^test\/.+$/
-                - /test-all/
+                - /^.*test.*$/
                 - master
       - test-windows:
           name: Acceptance Tests (snyk-win.exe)
           context: nodejs-install
           requires:
             - Build Artifacts
+          test_snyk_command: C:\Users\circleci\snyk\binary-releases\snyk-win.exe
       - test-macos:
           name: Acceptance Tests (snyk-macos)
           context: nodejs-install
           requires:
             - Build Artifacts
+          test_snyk_command: /Users/distiller/snyk/binary-releases/snyk-macos
       - test-linux:
           name: Acceptance Tests (snyk-linux)
           context: nodejs-install
           requires:
             - Build Artifacts
+          test_snyk_command: /home/circleci/snyk/binary-releases/snyk-linux
       - test-linux-arm64:
           name: Acceptance Tests (snyk-linux-arm64)
           context: nodejs-install
@@ -707,6 +720,7 @@ workflows:
           context: nodejs-install
           requires:
             - Build Artifacts
+          test_snyk_command: /mnt/ramdisk/snyk/binary-releases/snyk-linux
       - should-release:
           name: Release?
           type: approval
@@ -744,25 +758,55 @@ workflows:
         pattern: '^.*v2.*$'
         value: << pipeline.git.branch >>
     jobs:
+      - install:
+          name: Install Dependencies (npm)
       - v2-build-artifacts:
-          name: Build Artifacts
+          name: Build Artifacts (v2)
       - v2-test-linux-amd64:
           name: Integration Tests (linux/amd64)
           requires:
-            - Build Artifacts
+            - Build Artifacts (v2)
       - v2-test-proxy-linux-amd64:
           name: Proxy Integration Tests (linux/amd64)
           requires:
-            - Build Artifacts
+            - Build Artifacts (v2)
       - v2-test-darwin-amd64:
           name: Integration Tests (darwin/amd64)
           requires:
-            - Build Artifacts
+            - Build Artifacts (v2)
       - v2-test-windows-amd64:
           name: Integration Tests (windows/amd64)
           requires:
-            - Build Artifacts
+            - Build Artifacts (v2)
       - v2-test-proxy-windows-amd64:
           name: Proxy Integration Tests (windows/amd64)
           requires:
-            - Build Artifacts
+            - Build Artifacts (v2)
+      # Tests for backwards compatibility with CLIv1
+      - test-linux:
+          name: Jest Acceptance Tests (linux/amd64)
+          context: nodejs-install
+          requires:
+            - Build Artifacts (v2)
+            - Install Dependencies (npm)
+          test_snyk_command: /home/circleci/snyk/cliv2/bin/snyk_linux_amd64
+      - test-windows:
+          name: Jest Acceptance Tests (windows/amd64)
+          context: nodejs-install
+          requires:
+            - Build Artifacts (v2)
+            - Install Dependencies (npm)
+          test_snyk_command: C:\Users\circleci\snyk\cliv2\bin\snyk_windows_amd64.exe
+      - test-macos:
+          name: Jest Acceptance Tests (darwin/amd64)
+          context: nodejs-install
+          requires:
+            - Build Artifacts (v2)
+            - Install Dependencies (npm)
+          test_snyk_command: /Users/distiller/snyk/cliv2/bin/snyk_darwin_amd64
+      - regression-test:
+          name: Regression Tests (v2)
+          context: nodejs-install
+          requires:
+            - Build Artifacts (v2)
+          test_snyk_command: /mnt/ramdisk/snyk/cliv2/bin/snyk_linux_amd64
